@@ -59,49 +59,137 @@
             <p class="text-lg font-bold flex justify-center">
                 Suhu :
             </p>
-            <p class="text-lg font-bold flex justify-center">
-                {{$a??'--'}} &deg;C
-            </p>
+            <div class="text-lg font-bold flex justify-center">
+                <span id='suhu'>
+                    {{$data->suhu->value ?? '--'}}
+                </span>
+                &nbsp;
+                <span> &deg;C </span>
+            </div>
+            <div class="text-lg font-bold flex justify-center">
+                <span id='suhu_updated_at'>
+                    @php
+                    if($data->suhu->updated_at){
+                    $date = Carbon\Carbon::parse($data->suhu->updated_at)->locale('id');
+                    $date->settings(['formatFunction' => 'translatedFormat']);
+                    echo($date->format('j F Y, H:i:s'));
+                    }
+                    @endphp
+                </span>
+            </div>
         </div>
         <div class="col-span-12 md:col-span-4 bg-slate-800 rounded-lg p-8">
             <p class="text-lg font-bold flex justify-center">
                 Kelembaban :
             </p>
-            <p class="text-lg font-bold flex justify-center">
-                {{$a??'--'}} % RH
-            </p>
+            <div class="text-lg font-bold flex justify-center">
+                <span id='kelembaban'>
+                    {{$data->kelembaban->value ?? '--'}}
+                </span>
+                &nbsp;
+                <span> % RH </span>
+            </div>
+            <div class="text-lg font-bold flex justify-center">
+                <span id='kelembaban_updated_at'>
+                    @php
+                    if($data->kelembaban->updated_at){
+                    $date = Carbon\Carbon::parse($data->kelembaban->updated_at)->locale('id');
+                    $date->settings(['formatFunction' => 'translatedFormat']);
+                    echo($date->format('j F Y, H:i:s'));
+                    }
+                    @endphp
+                </span>
+            </div>
         </div>
         <div class="col-span-12 md:col-span-4 bg-slate-800 rounded-lg p-8">
             <p class="text-lg font-bold flex justify-center">
                 pH ( potential of hydrogen ) :
             </p>
-            <p class="text-lg font-bold flex justify-center">
-                {{$a??'--'}}
-            </p>
+            <div class="text-lg font-bold flex justify-center">
+                <span id='ph'>
+                    {{$data->ph->value ?? '--'}}
+                </span>
+            </div>
+            <div class="text-lg font-bold flex justify-center">
+                <span id='ph_updated_at'>
+                    @php
+                    if($data->ph->updated_at){
+                    $date = Carbon\Carbon::parse($data->ph->updated_at)->locale('id');
+                    $date->settings(['formatFunction' => 'translatedFormat']);
+                    echo($date->format('j F Y, H:i:s'));
+                    }
+                    @endphp
+                </span>
+            </div>
         </div>
         <div class="col-span-12 md:col-span-4 bg-slate-800 rounded-lg p-8">
             <p class="text-lg font-bold flex justify-center">
                 Tinggi cairan di bak air :
             </p>
-            <p class="text-lg font-bold flex justify-center">
-                {{$a??'--'}} cm
-            </p>
+            <div class="text-lg font-bold flex justify-center">
+                <span id='tinggi_bak_air'>
+                    {{$data->tinggi_bak_air->value ?? '--'}}
+                </span>
+                &nbsp;
+                <span> cm </span>
+            </div>
+            <div class="text-lg font-bold flex justify-center">
+                <span id='tinggi_bak_air_updated_at'>
+                    @php
+                    if($data->tinggi_bak_air->updated_at){
+                    $date = Carbon\Carbon::parse($data->tinggi_bak_air->updated_at)->locale('id');
+                    $date->settings(['formatFunction' => 'translatedFormat']);
+                    echo($date->format('j F Y, H:i:s'));
+                    }
+                    @endphp
+                </span>
+            </div>
         </div>
         <div class="col-span-12 md:col-span-4 bg-slate-800 rounded-lg p-8">
             <p class="text-lg font-bold flex justify-center">
                 Tinggi cairan di nutrisi A :
             </p>
-            <p class="text-lg font-bold flex justify-center">
-                {{$a??'--'}} cm
-            </p>
+            <div class="text-lg font-bold flex justify-center">
+                <span id='tinggi_nutrisi_a'>
+                    {{$data->tinggi_nutrisi_a->value ?? '--'}}
+                </span>
+                &nbsp;
+                <span> cm </span>
+            </div>
+            <div class="text-lg font-bold flex justify-center">
+                <span id='tinggi_nutrisi_a_updated_at'>
+                    @php
+                    if($data->tinggi_nutrisi_a->updated_at){
+                    $date = Carbon\Carbon::parse($data->tinggi_nutrisi_a->updated_at)->locale('id');
+                    $date->settings(['formatFunction' => 'translatedFormat']);
+                    echo($date->format('j F Y, H:i:s'));
+                    }
+                    @endphp
+                </span>
+            </div>
         </div>
         <div class="col-span-12 md:col-span-4 bg-slate-800 rounded-lg p-8">
             <p class="text-lg font-bold flex justify-center">
                 Tinggi cairan di nutrisi B :
             </p>
-            <p class="text-lg font-bold flex justify-center">
-                {{$a??'--'}} cm
-            </p>
+            <div class="text-lg font-bold flex justify-center">
+                <span id='tinggi_nutrisi_b'>
+                    {{$data->tinggi_nutrisi_b->value ?? '--'}}
+                </span>
+                &nbsp;
+                <span> cm </span>
+            </div>
+            <div class="text-lg font-bold flex justify-center">
+                <span id='tinggi_nutrisi_b_updated_at'>
+                    @php
+                    if($data->tinggi_nutrisi_b->updated_at){
+                    $date = Carbon\Carbon::parse($data->tinggi_nutrisi_b->updated_at)->locale('id');
+                    $date->settings(['formatFunction' => 'translatedFormat']);
+                    echo($date->format('j F Y, H:i:s'));
+                    }
+                    @endphp
+                </span>
+            </div>
         </div>
     </div>
     <script>
@@ -116,15 +204,11 @@
                 }
             }
         }); 
-        // var pusher = new Pusher('0d7d9bdb9fadb39a989a', {
-        //     encrypted: true,
-        //     cluster: 'ap1',
-        //     credential: 'omit'
-        // });
         var channel = pusher.subscribe('data-sensor-updated');
         channel.bind('App\\Events\\DataSensorUpdated', function(data) {
-            console.log(123);
-            console.log(data);
+            date = new Date(data.updated_at)
+            $('#'+data.type).html(data.value)
+            $('#'+data.type+'_updated_at').html(data.updated_at)
         })
     </script>
 </body>

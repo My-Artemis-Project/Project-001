@@ -10,7 +10,6 @@ class SensorController extends Controller
 {
     public function get($type)
     {
-        event(new DataSensorUpdated('suhu', 2));
 
         return response()->json(
             Sensor::where('type', $type)->latest()->first()
@@ -22,9 +21,10 @@ class SensorController extends Controller
         $sensor->type = $type;
         $sensor->value = $request->value;
         $sensor->save();
+        
+        event(new DataSensorUpdated($sensor->type, $sensor->value,$sensor->updated_at));
 
-        event(new DataSensorUpdated($sensor->type, $sensor->value));
-
+        // return $sensor->updated_at;
         return response()->json($sensor);
     }
     public function getList()
