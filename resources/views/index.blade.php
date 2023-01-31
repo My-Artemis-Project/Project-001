@@ -106,12 +106,25 @@
     </div>
     <script>
         var pusher = new Pusher('0d7d9bdb9fadb39a989a', {
-            encrypted: true,
             cluster: 'ap1',
-        });
+            encrypted: true,
+            authEndpoint: '/broadcasting/auth',
+            disableStats: true,
+            auth: {
+                headers: {
+                'X-CSRF-Token': '{{ csrf_token() }}', // CSRF token
+                }
+            }
+        }); 
+        // var pusher = new Pusher('0d7d9bdb9fadb39a989a', {
+        //     encrypted: true,
+        //     cluster: 'ap1',
+        //     credential: 'omit'
+        // });
         var channel = pusher.subscribe('data-sensor-updated');
         channel.bind('App\\Events\\DataSensorUpdated', function(data) {
-            console.log(data)
+            console.log(123);
+            console.log(data);
         })
     </script>
 </body>

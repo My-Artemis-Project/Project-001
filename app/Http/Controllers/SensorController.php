@@ -10,6 +10,8 @@ class SensorController extends Controller
 {
     public function get($type)
     {
+        event(new DataSensorUpdated('suhu', 2));
+
         return response()->json(
             Sensor::where('type', $type)->latest()->first()
         );
