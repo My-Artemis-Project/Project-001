@@ -14,6 +14,8 @@
         rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"
         integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+    <script src="//js.pusher.com/3.1/pusher.min.js"></script>
+
 </head>
 
 <body class="p-10 bg-slate-900 font-poppins text-white">
@@ -102,6 +104,16 @@
             </p>
         </div>
     </div>
+    <script>
+        var pusher = new Pusher('0d7d9bdb9fadb39a989a', {
+            encrypted: true,
+            cluster: 'ap1',
+        });
+        var channel = pusher.subscribe('data-sensor-updated');
+        channel.bind('App\\Events\\DataSensorUpdated', function(data) {
+            console.log(data)
+        })
+    </script>
 </body>
 
 </html>
