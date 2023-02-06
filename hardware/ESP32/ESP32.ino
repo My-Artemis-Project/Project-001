@@ -1,14 +1,3 @@
-/*
-  Rui Santos
-  Complete project details at Complete project details at https://RandomNerdTutorials.com/esp32-http-get-post-arduino/
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files.
-
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-*/
-
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <DHT.h>
@@ -17,7 +6,11 @@
 #define DHT_SENSOR_PIN 17
 #define DHT_SENSOR_TYPE DHT11
 
+// initialize DHT
 DHT dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
+
+// Tegangan dari MicroController, berfungsi untuk convert analog di sensor pH
+const float vcc = 3.3;
 
 // wifi auth
 const char* ssid = "Artemis";
@@ -25,6 +18,8 @@ const char* password = "antihack22";
 
 // url store data
 const char* tinggiBakAirAPI = "http://34.101.128.49/api/store/data/tinggi_bak_air";
+const char* tinggiNutrisiAAPI = "http://34.101.128.49/api/store/data/tinggi_nutrisi_a";
+const char* tinggiNutrisiBAPI = "http://34.101.128.49/api/store/data/tinggi_nutrisi_b";
 const char* tempAPI = "http://34.101.128.49/api/store/data/suhu";
 const char* kelembabanAPI = "http://34.101.128.49/api/store/data/kelembaban";
 const char* phAPI = "http://34.101.128.49/api/store/data/ph";
@@ -33,9 +28,16 @@ const char* phAPI = "http://34.101.128.49/api/store/data/ph";
 unsigned long lastTime = 0;
 unsigned long timerDelay = 5000;
 
-// ultrasonic 1
-const int ultrasonic_1_trigger = 18;
-const int ultrasonic_1_echo = 19;
+// ultrasonic tinggi air
+const int ultrasonic_air_trigger = 18;
+const int ultrasonic_air_echo = 19;
+// ultrasonic tinggi nutrisi A
+const int ultrasonic_a_trigger = 18;
+const int ultrasonic_a_echo = 19;
+// ultrasonic tinggi nutrisi B
+const int ultrasonic_b_trigger = 18;
+const int ultrasonic_b_echo = 19;
+
 long duration;
 float distanceCm;
 
@@ -48,11 +50,23 @@ void setup() {
   Serial.begin(115200);
 
   // trigger pin untuk ultrasonic 1
-  pinMode(ultrasonic_1_trigger, OUTPUT);
+  pinMode(ultrasonic_air_trigger, OUTPUT);
   // echo pin untuk ultrasonic 1
-  pinMode(ultrasonic_1_echo, INPUT);
+  pinMode(ultrasonic_air_echo, INPUT);
+
+  // trigger pin untuk ultrasonic a
+  pinMode(ultrasonic_a_trigger, OUTPUT);
+  // echo pin untuk ultrasonic a
+  pinMode(ultrasonic_a_echo, INPUT);
+
+  // trigger pin untuk ultrasonic b
+  pinMode(ultrasonic_b_trigger, OUTPUT);
+  // echo pin untuk ultrasonic b
+  pinMode(ultrasonic_b_echo, INPUT);
+  
   // ph
   // pinMode(ph_pin, INPUT);
+
   WiFi.begin(ssid, password);
   Serial.println("Connecting");
   while (WiFi.status() != WL_CONNECTED) {
@@ -69,100 +83,137 @@ void setup() {
 }
 
 int ultrasonic(int trigger, int echo) {
-  // Clears the trigger
+  // Membersihkan trigger
   digitalWrite(trigger, LOW);
   delayMicroseconds(2);
-  // Sets the trigger on HIGH state for 10 micro seconds
-  digitalWrite(trigger, HIGH);
+  // Menyetel pemicu pada status HIGH selama 10 mikro detik
+  digitalWrite(trigger, HIGH); 
   delayMicroseconds(10);
   digitalWrite(trigger, LOW);
 
-  // Reads the echo, returns the sound wave travel time in microseconds
+  // Membaca echo (gema), mengembalikan waktu tempuh gelombang suara dalam mikrodetik
   duration = pulseIn(echo, HIGH);
 
-  // Calculate the distance
+  // Menghitung jarak
   distanceCm = duration * SOUND_SPEED / 2;
 
   return distanceCm;
 }
 
 float temp() {
-  float tempC = dht_sensor.readTemperature();
-  if (isnan(tempC)) {
-    Serial.println("Failed to read from DHT (temp) sensor!");
-  } else {
-    return tempC;
+  // Membaca data temperature dari sensor dht
+  float data = dht_sensor.readTemperature();
+
+  // jika variable data tidak memiliki isi, maka sensor gagal (kemungkinan rusak atau tidak terpasang dengan benar)
+  // dan akan langsung mengembalikan nilai nya sebesar -999 sebagai hasil yg gagal
+  if (isnan(data)) {
+    Serial.println("Gagal membaca data temperature dari DHT Sensor!");
+    return -999;
   }
-  return 0;
+  // jika variable temp ada, maka
+  return data;
 }
 
 float humi() {
-  float humi = dht_sensor.readHumidity();
-  if (isnan(humi)) {
-    Serial.println("Failed to read from DHT (humi) sensor!");
-  } else {
-    return humi;
+  // Membaca data kelembaban dari sensor dht
+  float data = dht_sensor.readHumidity();
+
+  // jika variable data tidak memiliki isi, maka sensor gagal (kemungkinan rusak atau tidak terpasang dengan benar)
+  // dan akan langsung mengembalikan nilai nya sebesar -999 sebagai hasil yg gagal
+  if (isnan(data)) {
+    Serial.println("Gagal membaca data kelembaban dari DHT Sensor!");
+    return -999;
   }
-  return 0;
+  return data;
 }
 
 float sensor_ph() {
-  int nilai_analog_ph = analogRead(ph_pin);
-  // Serial.println("PH : " + String(nilai_analog_ph));
+  // membaca nilai analog dari sensor pH
+  int data_analog = analogRead(ph_pin);
 
-  double tegangan_ph = 3.3 / 1024.0 * nilai_analog_ph;
+  // menghitung tegangan (V) yang di hasilkan dari data analog
+  double tegangan_ph = vcc / 1024.0 * data_analog;
+
+  // menghitung jarak tegangan antar 1 kenaikan pH
   float ph_step = (PH4 - PH7) / 3;
-  float po = 7.00 + ((PH7 - tegangan_ph) / ph_step);
-  return po;
+
+  // menghitung pH
+  float data = 7.00 + ((PH7 - tegangan_ph) / ph_step);
+  return data;
 }
 
 void postData(String host, String data) {
+  // melakukan pengecekan wifi
   if (WiFi.status() == WL_CONNECTED) {
+    // Menginisialisasi WiFiClient, dan HTTPClient
     WiFiClient client;
     HTTPClient http;
 
     // deklarasi awal untuk kirim data
     http.begin(client, host);
+
+    // content-type di set menjadi form
+    // agar data bisa menggunakan format key1=value1&key2=value2
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+    // http.addHeader("Content-Type", "application/json");
+    // http.addHeader("Content-Type", "application/xml");
 
     // kirim data dengan metode POST
     int httpResponseCode = http.POST(data);
 
-
+    // mengeluarkan nilai agar lebih mudah untuk debug, jika terjadi masalah
     Serial.println("----------------------------------------------------");
-    Serial.println("Host : " + host);
-    Serial.println("Data : " + data);
-    Serial.println("Response code : " + String(httpResponseCode));
+    Serial.println("URL API       : " + host);
+    Serial.println("Data          : " + data);
+    Serial.println("Kode Response : " + String(httpResponseCode));
     Serial.println("----------------------------------------------------");
     Serial.println();
 
-    // Free resources
+    // untuk membersihkan resource, agar tidak menumpuk beban pekerjaannya
     http.end();
   } else {
     Serial.println("WiFi Disconnected");
   }
 }
+
 void loop() {
   // kirim data per timerDelay
   if ((millis() - lastTime) > timerDelay) {
 
-    // get ultrasonic
-    int ultrasonic_1 = ultrasonic(ultrasonic_1_trigger, ultrasonic_1_echo);
-    String data = "value=" + String(ultrasonic_1);
-    postData(tinggiBakAirAPI, data);
+    // mengambil data ultrasonic tinggi air
+    int ultrasonic_1 = ultrasonic(ultrasonic_air_trigger, ultrasonic_air_echo);
+    // convert data int ke String ultrasonic tinggi air
+    String data_ultrasonic_1 = "value=" + String(ultrasonic_1);
+    // Mengirim data ultrasonic tinggi air ke website
+    postData(tinggiBakAirAPI, data_ultrasonic_1);
 
+    // mengambil dan mengirim data ultrasonic tinggi nutrisi A
+    int ultrasonic_a = ultrasonic(ultrasonic_a_trigger, ultrasonic_a_echo);
+    String data_ultrasonic_a = "value=" + String(ultrasonic_a);
+    postData(tinggiNutrisiAAPI, data_ultrasonic_a);
+
+    // mengambil dan mengirim data ultrasonic tinggi nutrisi B
+    int ultrasonic_b = ultrasonic(ultrasonic_b_trigger, ultrasonic_b_echo);
+    String data_ultrasonic_b = "value=" + String(ultrasonic_b);
+    postData(tinggiNutrisiBAPI, data_ultrasonic_b);
+
+    // mengambil dan mengirim data temperature
     float tempData = temp();
     String tempDataString = "value=" + String(tempData);
     postData(tempAPI, tempDataString);
 
+    // mengambil dan mengirim data kelambaban
     float kelambabanData = humi();
     String kelambabanDataString = "value=" + String(kelambabanData);
     postData(kelembabanAPI, kelambabanDataString);
 
+    // mengambil dan mengirim data ultrasoni
     float phData = sensor_ph();
-    String phDataString = "value="+ String(phData);
+    String phDataString = "value=" + String(phData);
     postData(phAPI, phDataString);
 
+    // save waktu saat ini, untuk nanti di compare
     lastTime = millis();
+    // 5000
   }
 }
