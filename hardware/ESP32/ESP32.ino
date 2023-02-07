@@ -12,7 +12,7 @@ DHT dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 // Tegangan dari MicroController, berfungsi untuk convert analog di sensor pH
 const float vcc = 3.3;
 
-// wifi auth
+// wifi autha
 const char* ssid = "Artemis";
 const char* password = "antihack22";
 
@@ -23,6 +23,11 @@ const char* tinggiNutrisiBAPI = "http://34.101.128.49/api/store/data/tinggi_nutr
 const char* tempAPI = "http://34.101.128.49/api/store/data/suhu";
 const char* kelembabanAPI = "http://34.101.128.49/api/store/data/kelembaban";
 const char* phAPI = "http://34.101.128.49/api/store/data/ph";
+
+// url get data
+const char* relayAAPI = "http://34.101.128.49/api/get/data/pompa_siram";
+const char* relayBAPI = "http://34.101.128.49/api/get/data/pompa_nutrisi";
+const char* relayCAPI = "http://34.101.128.49/api/get/data/pompa_mixer";
 
 // delay per send data
 unsigned long lastTime = 0;
@@ -46,6 +51,10 @@ const int ph_pin = 34;
 float PH4 = 3.55;
 float PH7 = 3.19;
 
+// Relay
+const int relay_a_pin = 22;
+const int relay_b_pin = 23;
+const int relay_c_pin = 23;
 void setup() {
   Serial.begin(115200);
 
@@ -63,9 +72,12 @@ void setup() {
   pinMode(ultrasonic_b_trigger, OUTPUT);
   // echo pin untuk ultrasonic b
   pinMode(ultrasonic_b_echo, INPUT);
-  
+
   // ph
   // pinMode(ph_pin, INPUT);
+
+  // relay
+  pinMode(relay_a_pin, OUTPUT);
 
   WiFi.begin(ssid, password);
   Serial.println("Connecting");
@@ -87,7 +99,7 @@ int ultrasonic(int trigger, int echo) {
   digitalWrite(trigger, LOW);
   delayMicroseconds(2);
   // Menyetel pemicu pada status HIGH selama 10 mikro detik
-  digitalWrite(trigger, HIGH); 
+  digitalWrite(trigger, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigger, LOW);
 
@@ -176,6 +188,46 @@ void postData(String host, String data) {
   }
 }
 
+int getData(String host, int pin, int delay) {
+  // melakukan pengecekan wifi
+  if (WiFi.status() == WL_CONNECTED) {
+    // Menginisialisasi WiFiClient, dan HTTPClient
+    WiFiClient client;
+    HTTPClient http;
+
+    // deklarasi awal untuk kirim data
+    http.begin(client, host);
+
+
+    // kirim data dengan metode POST
+    int httpResponseCode = http.GET(data);
+
+    if (httpResponseCode == 200) {
+      relay(pin, delay);
+      postData(host, 'value=0');
+    }
+    // mengeluarkan nilai agar lebih mudah untuk debug, jika terjadi masalah
+    Serial.println("----------------------------------------------------");
+    Serial.println("URL API       : " + host);
+    Serial.println("Data          : " + data);
+    Serial.println("Kode Response : " + String(httpResponseCode));
+    Serial.println("----------------------------------------------------");
+    Serial.println();
+
+    // untuk membersihkan resource, agar tidak menumpuk beban pekerjaannya
+    http.end();
+  } else {
+    Serial.println("WiFi Disconnected");
+  }
+}
+
+void relay(pin, time) {
+  digitalWrite(pin, LOW);
+  delay(500);
+  digitalWrite(pin, HIGHT);
+  delay(time);
+}
+
 void loop() {
   // kirim data per timerDelay
   if ((millis() - lastTime) > timerDelay) {
@@ -211,6 +263,10 @@ void loop() {
     float phData = sensor_ph();
     String phDataString = "value=" + String(phData);
     postData(phAPI, phDataString);
+
+    getData(relayAAPI, relay_a_pin, 8000);
+    getData(relayBAPI, relay_b_pin, 8000);
+    getData(relayCAPI, relay_c_pin, 8000);
 
     // save waktu saat ini, untuk nanti di compare
     lastTime = millis();

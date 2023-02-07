@@ -3,7 +3,7 @@
 use App\Http\Controllers\SensorController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('store/data/{type}', [SensorController::class, 'store']);
+Route::post('store/data/{type}', [SensorController::class, 'store'])->name('store.data');
 Route::get('get/data/all', [SensorController::class, 'getList']);
 Route::get('get/data/{type}', [SensorController::class, 'get']);
 

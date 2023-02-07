@@ -12,7 +12,7 @@ class SensorController extends Controller
     {
 
         return response()->json(
-            Sensor::where('type', $type)->latest()->first()
+            Sensor::where('type', $type)->latest()->pluck('value')
         );
     }
     public function store(Request $request, $type)
@@ -21,7 +21,7 @@ class SensorController extends Controller
         $sensor->type = $type;
         $sensor->value = $request->value;
         $sensor->save();
-        
+
         event(new DataSensorUpdated($sensor->type, $sensor->value,$sensor->updated_at));
 
         // return $sensor->updated_at;

@@ -22,26 +22,26 @@
     <div class="grid grid-cols-3 gap-4">
         <div
             class="col-span-3 rounded-tr-full rounded-bl-full rounded-tl-[200px] rounded-br-[200px] p-8 flex justify-center bg-white">
-            <img src="{{asset('assets/img/aeroponik.png')}}" alt="">
+            <img src="{{ asset('assets/img/aeroponik.png') }}" alt="">
         </div>
-        <div
-            class="col-span-3 md:col-span-1 text-lg font-bold h-full underline text-center bg-slate-700 rounded-lg m-3 hover:drop-shadow-md  self-center flex hover:bg-slate-800">
+        <a href="{{route('monitoring')}}"
+            class="col-span-3 md:col-span-1 self-center text-lg font-bold h-full underline text-center bg-slate-700 rounded-lg p-6 m-3 hover:drop-shadow-mdhover:bg-slate-800 flex">
             <div class="m-auto">
                 Monitoring
             </div>
-        </div>
-        <div
+        </a>
+        <a href="{{route('dashboard')}}"
             class="col-span-3 md:col-span-1 self-center text-lg font-bold h-full underline text-center bg-slate-500 rounded-lg p-6 m-3 hover:drop-shadow-md hover:bg-slate-800 flex">
             <div class="m-auto">
-                Riwayat <br> (Comming Soon)
+                Dashboard
             </div>
-        </div>
-        <div
+        </a>
+        <a href="{{route('control')}}"
             class="col-span-3 md:col-span-1 self-center text-lg font-bold h-full underline text-center bg-slate-500 rounded-lg p-6 m-3 hover:drop-shadow-md hover:bg-slate-800 flex">
             <div class="m-auto">
-                Tentang Kami <br> (Comming Soon)
+                Control
             </div>
-        </div>
+        </a>
         <div class="col-span-3 border-2 mt-2 mb-6 rounded-lg">
             <hr>
         </div>
@@ -52,7 +52,7 @@
                 Target tanaman :
             </p>
             <p class="text-lg font-bold flex justify-center">
-                {{$target_tanaman??'Pakcoy'}}
+                {{ $target_tanaman ?? 'Pakcoy' }}
             </p>
         </div>
         <div class="col-span-12 md:col-span-4 bg-slate-800 rounded-lg p-8">
@@ -61,7 +61,7 @@
             </p>
             <div class="text-lg font-bold flex justify-center">
                 <span id='suhu'>
-                    {{$data->suhu->value ?? '--'}}
+                    {{ $data->suhu->value ?? '--' }}
                 </span>
                 &nbsp;
                 <span> &deg;C </span>
@@ -69,11 +69,11 @@
             <div class="text-lg font-bold flex justify-center">
                 <span id='suhu_updated_at'>
                     @php
-                    if($data->suhu->updated_at){
-                    $date = Carbon\Carbon::parse($data->suhu->updated_at)->locale('id');
-                    $date->settings(['formatFunction' => 'translatedFormat']);
-                    echo($date->format('j F Y, H:i:s'));
-                    }
+                        if ($data->suhu->updated_at) {
+                            $date = Carbon\Carbon::parse($data->suhu->updated_at)->locale('id');
+                            $date->settings(['formatFunction' => 'translatedFormat']);
+                            echo $date->format('j F Y, H:i:s');
+                        }
                     @endphp
                 </span>
             </div>
@@ -84,7 +84,7 @@
             </p>
             <div class="text-lg font-bold flex justify-center">
                 <span id='kelembaban'>
-                    {{$data->kelembaban->value ?? '--'}}
+                    {{ $data->kelembaban->value ?? '--' }}
                 </span>
                 &nbsp;
                 <span> % RH </span>
@@ -92,11 +92,11 @@
             <div class="text-lg font-bold flex justify-center">
                 <span id='kelembaban_updated_at'>
                     @php
-                    if($data->kelembaban->updated_at){
-                    $date = Carbon\Carbon::parse($data->kelembaban->updated_at)->locale('id');
-                    $date->settings(['formatFunction' => 'translatedFormat']);
-                    echo($date->format('j F Y, H:i:s'));
-                    }
+                        if ($data->kelembaban->updated_at) {
+                            $date = Carbon\Carbon::parse($data->kelembaban->updated_at)->locale('id');
+                            $date->settings(['formatFunction' => 'translatedFormat']);
+                            echo $date->format('j F Y, H:i:s');
+                        }
                     @endphp
                 </span>
             </div>
@@ -107,17 +107,17 @@
             </p>
             <div class="text-lg font-bold flex justify-center">
                 <span id='ph'>
-                    {{$data->ph->value ?? '--'}}
+                    {{ $data->ph->value ?? '--' }}
                 </span>
             </div>
             <div class="text-lg font-bold flex justify-center">
                 <span id='ph_updated_at'>
                     @php
-                    if($data->ph->updated_at){
-                    $date = Carbon\Carbon::parse($data->ph->updated_at)->locale('id');
-                    $date->settings(['formatFunction' => 'translatedFormat']);
-                    echo($date->format('j F Y, H:i:s'));
-                    }
+                        if ($data->ph->updated_at) {
+                            $date = Carbon\Carbon::parse($data->ph->updated_at)->locale('id');
+                            $date->settings(['formatFunction' => 'translatedFormat']);
+                            echo $date->format('j F Y, H:i:s');
+                        }
                     @endphp
                 </span>
             </div>
@@ -128,7 +128,7 @@
             </p>
             <div class="text-lg font-bold flex justify-center">
                 <span id='tinggi_bak_air'>
-                    {{$data->tinggi_bak_air->value ?? '--'}}
+                    {{ $data->tinggi_bak_air->value ?? '--' }}
                 </span>
                 &nbsp;
                 <span> cm </span>
@@ -136,11 +136,11 @@
             <div class="text-lg font-bold flex justify-center">
                 <span id='tinggi_bak_air_updated_at'>
                     @php
-                    if($data->tinggi_bak_air->updated_at){
-                    $date = Carbon\Carbon::parse($data->tinggi_bak_air->updated_at)->locale('id');
-                    $date->settings(['formatFunction' => 'translatedFormat']);
-                    echo($date->format('j F Y, H:i:s'));
-                    }
+                        if ($data->tinggi_bak_air->updated_at) {
+                            $date = Carbon\Carbon::parse($data->tinggi_bak_air->updated_at)->locale('id');
+                            $date->settings(['formatFunction' => 'translatedFormat']);
+                            echo $date->format('j F Y, H:i:s');
+                        }
                     @endphp
                 </span>
             </div>
@@ -151,7 +151,7 @@
             </p>
             <div class="text-lg font-bold flex justify-center">
                 <span id='tinggi_nutrisi_a'>
-                    {{$data->tinggi_nutrisi_a->value ?? '--'}}
+                    {{ $data->tinggi_nutrisi_a->value ?? '--' }}
                 </span>
                 &nbsp;
                 <span> cm </span>
@@ -159,11 +159,11 @@
             <div class="text-lg font-bold flex justify-center">
                 <span id='tinggi_nutrisi_a_updated_at'>
                     @php
-                    if($data->tinggi_nutrisi_a->updated_at){
-                    $date = Carbon\Carbon::parse($data->tinggi_nutrisi_a->updated_at)->locale('id');
-                    $date->settings(['formatFunction' => 'translatedFormat']);
-                    echo($date->format('j F Y, H:i:s'));
-                    }
+                        if ($data->tinggi_nutrisi_a->updated_at) {
+                            $date = Carbon\Carbon::parse($data->tinggi_nutrisi_a->updated_at)->locale('id');
+                            $date->settings(['formatFunction' => 'translatedFormat']);
+                            echo $date->format('j F Y, H:i:s');
+                        }
                     @endphp
                 </span>
             </div>
@@ -174,7 +174,7 @@
             </p>
             <div class="text-lg font-bold flex justify-center">
                 <span id='tinggi_nutrisi_b'>
-                    {{$data->tinggi_nutrisi_b->value ?? '--'}}
+                    {{ $data->tinggi_nutrisi_b->value ?? '--' }}
                 </span>
                 &nbsp;
                 <span> cm </span>
@@ -182,11 +182,11 @@
             <div class="text-lg font-bold flex justify-center">
                 <span id='tinggi_nutrisi_b_updated_at'>
                     @php
-                    if($data->tinggi_nutrisi_b->updated_at){
-                    $date = Carbon\Carbon::parse($data->tinggi_nutrisi_b->updated_at)->locale('id');
-                    $date->settings(['formatFunction' => 'translatedFormat']);
-                    echo($date->format('j F Y, H:i:s'));
-                    }
+                        if ($data->tinggi_nutrisi_b->updated_at) {
+                            $date = Carbon\Carbon::parse($data->tinggi_nutrisi_b->updated_at)->locale('id');
+                            $date->settings(['formatFunction' => 'translatedFormat']);
+                            echo $date->format('j F Y, H:i:s');
+                        }
                     @endphp
                 </span>
             </div>
@@ -200,15 +200,15 @@
             disableStats: true,
             auth: {
                 headers: {
-                'X-CSRF-Token': '{{ csrf_token() }}', // CSRF token
+                    'X-CSRF-Token': '{{ csrf_token() }}', // CSRF token
                 }
             }
-        }); 
+        });
         var channel = pusher.subscribe('data-sensor-updated');
         channel.bind('App\\Events\\DataSensorUpdated', function(data) {
             date = new Date(data.updated_at)
-            $('#'+data.type).html(data.value)
-            $('#'+data.type+'_updated_at').html(data.updated_at)
+            $('#' + data.type).html(data.value)
+            $('#' + data.type + '_updated_at').html(data.updated_at)
         })
     </script>
 </body>
