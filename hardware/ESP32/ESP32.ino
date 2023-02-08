@@ -3,8 +3,12 @@
 #include <DHT.h>
 
 #define SOUND_SPEED 0.034
-#define PIN_DHT_SENSOR 17
+#define PIN_DHT_SENSOR 21
 #define TYPE_DHT_SENSOR DHT11
+
+// ini pin di esp32, yang akan menjalankan fungsi komunikasi ke arduino
+#define RXp2 16
+#define TXp2 17
 
 // initialize DHT
 DHT dht_sensor(PIN_DHT_SENSOR, TYPE_DHT_SENSOR);
@@ -13,8 +17,8 @@ DHT dht_sensor(PIN_DHT_SENSOR, TYPE_DHT_SENSOR);
 const float vcc = 3.3;
 
 // wifi autha
-const char* ssid = "Akirjaf";
-const char* password = "Antihack22.";
+const char* ssid = "RyndamHost";
+const char* password = "Ryndam343";
 
 // url store data
 const char* api_tinggi_bak_air = "http://34.101.128.49/api/store/data/tinggi_bak_air";
@@ -24,41 +28,45 @@ const char* api_temperature = "http://34.101.128.49/api/store/data/suhu";
 const char* api_kelembaban = "http://34.101.128.49/api/store/data/kelembaban";
 const char* api_ph = "http://34.101.128.49/api/store/data/ph";
 
-const char* api_relay_a = "http://34.101.128.49/api/store/data/pompa_siram";
-const char* api_relay_b = "http://34.101.128.49/api/store/data/pompa_nutrisi";
-const char* api_relay_c = "http://34.101.128.49/api/store/data/pompa_mixer";
+const char* api_relay_siram = "http://34.101.128.49/api/store/data/pompa_siram";
+const char* api_relay_nutrisi = "http://34.101.128.49/api/store/data/pompa_nutrisi";
+const char* api_relay_mixer = "http://34.101.128.49/api/store/data/pompa_mixer";
 
 // url get data
-const char* api_get_relay_a = "http://34.101.128.49/api/get/data/pompa_siram";
-const char* api_get_relay_b = "http://34.101.128.49/api/get/data/pompa_nutrisi";
-const char* api_get_relay_c = "http://34.101.128.49/api/get/data/pompa_mixer";
+const char* api_get_relay_siram = "http://34.101.128.49/api/get/data/pompa_siram";
+const char* api_get_relay_nutrisi = "http://34.101.128.49/api/get/data/pompa_nutrisi";
+const char* api_get_relay_mixer = "http://34.101.128.49/api/get/data/pompa_mixer";
 
 // delay per send data
 unsigned long lastTime = 0;
 unsigned long timerDelay = 5000;
 
+unsigned long lastTimePompa = 0;
+unsigned long timerDelayPompa = 60000;
+
 // ultrasonic tinggi air
 const int pin_ultrasonic_air_trigger = 18;
 const int pin_ultrasonic_air_echo = 19;
 // ultrasonic tinggi nutrisi A
-const int pin_ultrasonic_a_trigger = 18;
-const int pin_ultrasonic_a_echo = 19;
+const int pin_ultrasonic_a_trigger = 22;
+const int pin_ultrasonic_a_echo = 23;
 // ultrasonic tinggi nutrisi B
-const int pin_ultrasonic_b_trigger = 18;
-const int pin_ultrasonic_b_echo = 19;
+const int pin_ultrasonic_b_trigger = 12;
+const int pin_ultrasonic_b_echo = 13;
 
 long duration;
 float distanceCm;
 
 // PH
-const int pin_ph = 34;
-float PH4 = 3.55;
-float PH7 = 3.19;
+// const int pin_ph = 34;
+// float PH4 = 3.55;
+// float PH7 = 3.19;
 
 // Relay
-const int pin_relay_a = 22;
-const int pin_relay_b = 23;
-const int pin_relay_c = 24; //bisa di ubah
+const int pin_relay_siram = 32;
+const int pin_relay_nutrisi = 33;
+const int pin_relay_mixer = 25;  //bisa di ubah
+
 void setup() {
   Serial.begin(115200);
 
@@ -81,9 +89,9 @@ void setup() {
   // pinMode(pin_ph, INPUT);
 
   // relay
-  pinMode(pin_relay_a, OUTPUT);
-  pinMode(pin_relay_b, OUTPUT);
-  pinMode(pin_relay_c, OUTPUT);
+  pinMode(pin_relay_siram, OUTPUT);
+  pinMode(pin_relay_nutrisi, OUTPUT);
+  pinMode(pin_relay_mixer, OUTPUT);
 
   WiFi.begin(ssid, password);
   Serial.println("Connecting");
@@ -98,6 +106,15 @@ void setup() {
   Serial.println("Timer set to 5 seconds (timerDelay variable), it will take 5 seconds before publishing the first reading.");
 
   dht_sensor.begin();
+
+  // mematikan semua relay
+  digitalWrite(pin_relay_siram, LOW);
+  digitalWrite(pin_relay_nutrisi, LOW);
+  digitalWrite(pin_relay_mixer, LOW);
+
+
+  // Untuk membaca data dari arduino
+  Serial2.begin(115200, SERIAL_8N1, RXp2, TXp2);
 }
 
 int ultrasonic(int trigger, int echo) {
@@ -145,20 +162,20 @@ float humi() {
   return data;
 }
 
-float sensor_ph() {
-  // membaca nilai analog dari sensor pH
-  int data_analog = analogRead(pin_ph);
+// float sensor_ph() {
+//   // membaca nilai analog dari sensor pH
+//   int data_analog = analogRead(pin_ph);
 
-  // menghitung tegangan (V) yang di hasilkan dari data analog
-  double tegangan_ph = vcc / 1024.0 * data_analog;
+//   // menghitung tegangan (V) yang di hasilkan dari data analog
+//   double tegangan_ph = vcc / 1024.0 * data_analog;
 
-  // menghitung jarak tegangan antar 1 kenaikan pH
-  float ph_step = (PH4 - PH7) / 3;
+//   // menghitung jarak tegangan antar 1 kenaikan pH
+//   float ph_step = (PH4 - PH7) / 3;
 
-  // menghitung pH
-  float data = 7.00 + ((PH7 - tegangan_ph) / ph_step);
-  return data;
-}
+//   // menghitung pH
+//   float data = 7.00 + ((PH7 - tegangan_ph) / ph_step);
+//   return data;
+// }
 
 void postData(String host, String data) {
   // melakukan pengecekan wifi
@@ -208,6 +225,13 @@ int getData(String host, int pin, int delay, String host_post) {
     // kirim data dengan metode GET
     int httpResponseCode = http.GET();
 
+
+    Serial.println("----------------------------------------------------");
+    Serial.println("URL API       : GET : " + host);
+    Serial.println("Kode Response : " + String(httpResponseCode));
+    Serial.println("----------------------------------------------------");
+    Serial.println();
+
     if (httpResponseCode == 200) {
       relay(pin, delay);
       postData(host_post, "value=0");
@@ -232,6 +256,7 @@ void relay(int pin, int time) {
   delay(500);
   digitalWrite(pin, HIGH);
   delay(time);
+  digitalWrite(pin, LOW);
 }
 
 void loop() {
@@ -266,16 +291,24 @@ void loop() {
     postData(api_kelembaban, kelambabanDataString);
 
     // mengambil dan mengirim data ultrasoni
-    float phData = sensor_ph();
+    // float phData = sensor_ph();
+    float phData = Serial2.readString().toFloat();
     String phDataString = "value=" + String(phData);
     postData(api_ph, phDataString);
 
-    getData(api_get_relay_a, pin_relay_a, 8000, api_relay_a);
-    getData(api_get_relay_b, pin_relay_b, 8000, api_relay_b);
-    getData(api_get_relay_c, pin_relay_c, 8000, api_relay_c);
+    getData(api_get_relay_nutrisi, pin_relay_nutrisi, 10000, api_relay_nutrisi);
+    getData(api_get_relay_mixer, pin_relay_mixer, 10000, api_relay_mixer);
+    getData(api_get_relay_siram, pin_relay_siram, 10000, api_relay_siram);
 
     // save waktu saat ini, untuk nanti di compare
     lastTime = millis();
     // 5000
+  }
+  if ((millis() - lastTimePompa) > timerDelayPompa) {
+    relay(pin_relay_nutrisi, 10000);
+    relay(pin_relay_mixer, 10000);
+    relay(pin_relay_siram, 10000);
+
+    lastTimePompa = millis();
   }
 }
