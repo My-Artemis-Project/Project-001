@@ -10,10 +10,13 @@ class SensorController extends Controller
 {
     public function get($type)
     {
+        $data = Sensor::where('type', $type)->latest()->first();
+        if($data){
+            if($data->value == 1)
+                return response()->json(1,200);
+            }
 
-        return response()->json(
-            Sensor::where('type', $type)->latest()->pluck('value')
-        );
+        return response()->json(0,501);
     }
     public function store(Request $request, $type)
     {

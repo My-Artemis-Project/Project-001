@@ -108,25 +108,6 @@
         </div>
     </div>
     <script>
-        var pusher = new Pusher('0d7d9bdb9fadb39a989a', {
-            cluster: 'ap1',
-            encrypted: true,
-            authEndpoint: '/broadcasting/auth',
-            disableStats: true,
-            auth: {
-                headers: {
-                    'X-CSRF-Token': '{{ csrf_token() }}', // CSRF token
-                }
-            }
-        });
-        var channel = pusher.subscribe('data-sensor-updated');
-
-        channel.bind('App\\Events\\DataSensorUpdated', function(data) {
-            date = new Date(data.updated_at)
-            $('#' + data.type).html(data.value)
-            $('#' + data.type + '_updated_at').html(data.updated_at)
-        })
-
         function onRelay(jenis) {
             $.post(`{{ route('store.data', '') }}/${jenis}`, {
                 "value": 1
