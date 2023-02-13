@@ -6,17 +6,14 @@
 #define PIN_DHT_SENSOR 21
 #define TYPE_DHT_SENSOR DHT11
 
-// ini pin di esp32, yang akan menjalankan fungsi komunikasi ke arduino
-#define RXp2 16
-#define TXp2 17
-
 // initialize DHT
 DHT dht_sensor(PIN_DHT_SENSOR, TYPE_DHT_SENSOR);
 
-// Tegangan dari MicroController, berfungsi untuk convert analog di sensor pH
-const float vcc = 3.3;
+// ini pin di esp32, yang akan menjalankan fungsi komunikasi ke arduino
+#define RX 16
+#define TX 17
 
-// wifi autha
+// wifi auth
 const char* ssid = "RyndamHost";
 const char* password = "Ryndam343";
 
@@ -27,7 +24,6 @@ const char* api_tinggi_nutrisi_b = "http://34.101.128.49/api/store/data/tinggi_n
 const char* api_temperature = "http://34.101.128.49/api/store/data/suhu";
 const char* api_kelembaban = "http://34.101.128.49/api/store/data/kelembaban";
 const char* api_ph = "http://34.101.128.49/api/store/data/ph";
-
 const char* api_relay_siram = "http://34.101.128.49/api/store/data/pompa_siram";
 const char* api_relay_nutrisi = "http://34.101.128.49/api/store/data/pompa_nutrisi";
 const char* api_relay_mixer = "http://34.101.128.49/api/store/data/pompa_mixer";
@@ -42,7 +38,7 @@ unsigned long lastTime = 0;
 unsigned long timerDelay = 5000;
 
 unsigned long lastTimePompa = 0;
-unsigned long timerDelayPompa = 60000;
+unsigned long timerDelayPompa = 600000;
 
 // ultrasonic tinggi air
 const int pin_ultrasonic_air_trigger = 18;
@@ -57,15 +53,10 @@ const int pin_ultrasonic_b_echo = 13;
 long duration;
 float distanceCm;
 
-// PH
-// const int pin_ph = 34;
-// float PH4 = 3.55;
-// float PH7 = 3.19;
-
 // Relay
 const int pin_relay_siram = 32;
 const int pin_relay_nutrisi = 33;
-const int pin_relay_mixer = 25;  //bisa di ubah
+const int pin_relay_mixer = 25;
 
 void setup() {
   Serial.begin(115200);
@@ -85,8 +76,6 @@ void setup() {
   // echo pin untuk ultrasonic b
   pinMode(pin_ultrasonic_b_echo, INPUT);
 
-  // ph
-  // pinMode(pin_ph, INPUT);
 
   // relay
   pinMode(pin_relay_siram, OUTPUT);
@@ -97,7 +86,7 @@ void setup() {
   Serial.println("Connecting");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    Serial.println("Connecting...");
   }
   Serial.println("");
   Serial.print("Connected to WiFi network with IP Address: ");
@@ -108,17 +97,17 @@ void setup() {
   dht_sensor.begin();
 
   // mematikan semua relay
-  digitalWrite(pin_relay_siram, LOW);
-  digitalWrite(pin_relay_nutrisi, LOW);
-  digitalWrite(pin_relay_mixer, LOW);
+  digitalWrite(pin_relay_siram, HIGH);
+  digitalWrite(pin_relay_nutrisi, HIGH);
+  digitalWrite(pin_relay_mixer, HIGH);
 
 
   // Untuk membaca data dari arduino
-  Serial2.begin(115200, SERIAL_8N1, RXp2, TXp2);
+  Serial2.begin(115200, SERIAL_8N1, RX, TX);
 }
 
 int ultrasonic(int trigger, int echo) {
-  // Membersihkan trigger
+  // Membersihkan/mematikan trigger
   digitalWrite(trigger, LOW);
   delayMicroseconds(2);
   // Menyetel pemicu pada status HIGH selama 10 mikro detik
@@ -161,21 +150,6 @@ float humi() {
   }
   return data;
 }
-
-// float sensor_ph() {
-//   // membaca nilai analog dari sensor pH
-//   int data_analog = analogRead(pin_ph);
-
-//   // menghitung tegangan (V) yang di hasilkan dari data analog
-//   double tegangan_ph = vcc / 1024.0 * data_analog;
-
-//   // menghitung jarak tegangan antar 1 kenaikan pH
-//   float ph_step = (PH4 - PH7) / 3;
-
-//   // menghitung pH
-//   float data = 7.00 + ((PH7 - tegangan_ph) / ph_step);
-//   return data;
-// }
 
 void postData(String host, String data) {
   // melakukan pengecekan wifi
@@ -252,11 +226,11 @@ int getData(String host, int pin, int delay, String host_post) {
 }
 
 void relay(int pin, int time) {
-  digitalWrite(pin, LOW);
-  delay(500);
   digitalWrite(pin, HIGH);
-  delay(time);
+  delay(500);
   digitalWrite(pin, LOW);
+  delay(time);
+  digitalWrite(pin, HIGH);
 }
 
 void loop() {
@@ -291,11 +265,12 @@ void loop() {
     postData(api_kelembaban, kelambabanDataString);
 
     // mengambil dan mengirim data ultrasoni
-    // float phData = sensor_ph();
     float phData = Serial2.readString().toFloat();
     String phDataString = "value=" + String(phData);
     postData(api_ph, phDataString);
 
+
+    // Get data untuk mengaktifkan pompa
     getData(api_get_relay_nutrisi, pin_relay_nutrisi, 10000, api_relay_nutrisi);
     getData(api_get_relay_mixer, pin_relay_mixer, 10000, api_relay_mixer);
     getData(api_get_relay_siram, pin_relay_siram, 10000, api_relay_siram);
